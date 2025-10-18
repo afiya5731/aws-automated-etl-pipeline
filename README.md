@@ -97,3 +97,63 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': json.dumps('Glue ETL Job Started!')
     }
+```
+## Glue Script Example
+
+```python
+import sys
+from awsglue.utils import getResolvedOptions
+from awsglue.context import GlueContext
+from pyspark.context import SparkContext
+
+args = getResolvedOptions(sys.argv, ['JOB_NAME'])
+sc = SparkContext()
+glueContext = GlueContext(sc)
+spark = glueContext.spark_session
+
+# Read from S3
+df = spark.read.csv("s3://raw-data-bucket/sample_data.csv", header=True, inferSchema=True)
+
+# Basic transformation
+df_cleaned = df.dropna()
+
+# Write processed data
+df_cleaned.write.mode("overwrite").csv("s3://processed-data-bucket/cleaned_data/")
+
+```
+
+## 🧩 EventBridge Rule Example (eventbridge_rule.json)
+
+```python
+{
+  "Source": ["aws.glue"],
+  "DetailType": ["Glue Job State Change"],
+  "Detail": {
+    "jobName": ["etl-glue-job"],
+    "state": ["SUCCEEDED"]
+  }
+}
+```
+
+## 🔔 Notifications (SNS)
+
+When the Glue job succeeds, EventBridge triggers SNS to send an email notification like:
+
+✅ ETL Job Completed Successfully!
+
+## 🧰 Prerequisites
+
+* AWS Account
+
+* Basic AWS Console Knowledge
+
+* Optional: Python & PySpark knowledge
+
+
+🎥 Original Tutorial Video
+
+📚 Beginner-friendly AWS ETL project for students and data enthusiasts.
+
+## 🏷️ Keywords
+
+aws etl pipeline, aws glue, lambda s3 trigger, eventbridge sns, serverless, data engineering, aws cloud project, etl automation
